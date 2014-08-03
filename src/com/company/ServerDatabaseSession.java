@@ -52,117 +52,62 @@ public class ServerDatabaseSession {
 	}
 
 	private JSONObject send_json(JSONObject message) throws SBSBaseException {
+		return this.send_json(message, 10000, 15000);
+	}
+
+	;
+
+	private JSONObject send_json(JSONObject message, Integer ReadTimeout, Integer ConnectTimeout) throws SBSBaseException {
 		//FIXME we need to check the https certificate!!!
 		//FIXME make Timeouts variable
 		//FIXME Exception Wrapping needs to be done
-		HttpsURLConnection conn = null;
+
+		//transform JSONObject to a byte string
 		byte[] message_bytes = null;
 		try {
 			message_bytes = message.toString().getBytes("UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			System.out.println("0");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-		try {
-			conn = (HttpsURLConnection) this.database_url.openConnection();
-		} catch (IOException e) {
-			System.out.println("1");
-			System.out.println(e);
-			throw new SBSBaseException();
+			throw new RuntimeException("UTF-8 encoding not available, this should really not happen");
 		}
 
-		conn.setReadTimeout(10000 /*milliseconds*/);
-		conn.setConnectTimeout(15000 /* milliseconds */);
+		String response_string = null;
 		try {
+			HttpsURLConnection conn = (HttpsURLConnection) this.database_url.openConnection();
+			conn.setReadTimeout(ReadTimeout);
+			conn.setConnectTimeout(ConnectTimeout);
 			conn.setRequestMethod("POST");
-		} catch (IOException e) {
-			System.out.println("2");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-		conn.setDoInput(true);
-		conn.setDoOutput(true);
-		conn.setFixedLengthStreamingMode(message_bytes.length);
-		conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-		try {
+			conn.setDoInput(true);
+			conn.setDoOutput(true);
+			conn.setFixedLengthStreamingMode(message_bytes.length);
+			conn.setRequestProperty("Content-Type", "application/json;charset=utf-8");
 			conn.connect();
-		} catch (IOException e) {
-			System.out.println("3");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-
-		//setup send
-		OutputStream os = null;
-		try {
-			os = new BufferedOutputStream(conn.getOutputStream());
-		} catch (IOException e) {
-			System.out.println("4");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-
-
-		try {
+			OutputStream os = new BufferedOutputStream(conn.getOutputStream());
 			os.write(message_bytes);
-		} catch (IOException e) {
-			System.out.println("5");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-
-		//do something with response
-		try {
 			os.flush();
+			os.close();
+			InputStream is = conn.getInputStream();
+			response_string = new Scanner(is, "UTF-8").useDelimiter("\\A").next().trim();
+			is.close();
+			conn.disconnect();
 		} catch (IOException e) {
-			System.out.println("6");
 			System.out.println(e);
-			throw new SBSBaseException();
+			throw new NoServerConnectionException();
 		}
 
-
-		InputStream is = null;
-		try {
-			is = conn.getInputStream();
-		} catch (IOException e) {
-			System.out.println("7");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-		String contentAsString = new Scanner(is,"UTF-8").useDelimiter("\\A").next();
-		if (contentAsString.startsWith("<html>")) {
-			System.out.println("7.5, server side error");
-			System.out.println(contentAsString);
-			throw new SBSBaseException();
+		//maybe we should return a JSONObject with success:failed here and add the string as a parameter
+		if (response_string.startsWith("<html>")) {
+			throw new ServerSideException();
 		}
 		;
-		JSONObject final_object = null;
-		try {
-			final_object = new JSONObject(contentAsString);
-		} catch (JSONException e) {
-			System.out.println("8");
-			System.out.println(contentAsString);
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
 
 		try {
-			os.close();
-		} catch (IOException e) {
-			System.out.println("9");
+			JSONObject final_object = new JSONObject(response_string);
+			return final_object;
+		} catch (JSONException e) {
+			System.out.println(response_string);
 			System.out.println(e);
-			throw new SBSBaseException();
+			throw new ErroneousResponse();
 		}
-		try {
-			is.close();
-		} catch (IOException e) {
-			System.out.println("10");
-			System.out.println(e);
-			throw new SBSBaseException();
-		}
-		conn.disconnect();
-		return final_object;
 	};
 
 	private byte[] calculate_response(byte[] salt, byte[] challenge)
@@ -202,7 +147,7 @@ public class ServerDatabaseSession {
 			request.put("session_id", this.session_id);
 		} catch (JSONException e) {
 			//should be impossible as we add a valid parameter to the json
-			throw new AssertionError(e);
+			throw new SBSBaseException();
 		}
 		JSONObject result = this.send_json(request);
 		this.check_for_success(result);
@@ -218,7 +163,7 @@ public class ServerDatabaseSession {
 			request.put("username", this.username);
 		} catch(JSONException e){
 			//should be impossible as we add a valid parameter to the json
-			throw new AssertionError(e);
+			throw new SBSBaseException();
 		}
 		JSONObject result = null;
 		result = this.send_json(request);
@@ -245,7 +190,7 @@ public class ServerDatabaseSession {
 			request.put("session_id", this.session_id);
 		} catch (JSONException e) {
 			//should be impossible as we add a valid parameter to the json
-			throw new AssertionError(e);
+			throw new SBSBaseException();
 		}
 		JSONObject result = this.send_json(request);
 		this.check_for_success(result);
@@ -271,7 +216,7 @@ public class ServerDatabaseSession {
 				project_list.add(new Project(id, name, description));
 			} catch (JSONException e) {
 				//some project did not decode correctly
-				throw new AssertionError(e);
+				throw new SBSBaseException();
 			}
 			;
 		}
@@ -291,7 +236,7 @@ public class ServerDatabaseSession {
 			//request.put("project_id", project_id);
 		} catch (JSONException e) {
 			//should be impossible as we add a valid parameter to the json
-			throw new AssertionError(e);
+			throw new SBSBaseException();
 		}
 		JSONObject result = this.send_json(request);
 		this.check_for_success(result);
@@ -318,7 +263,7 @@ public class ServerDatabaseSession {
 				experiment_list.add(new Experiment(project_id, id, name, description));
 			} catch (JSONException e) {
 				//some project did not decode correctly
-				throw new AssertionError(e);
+				throw new SBSBaseException();
 			}
 			;
 		}
