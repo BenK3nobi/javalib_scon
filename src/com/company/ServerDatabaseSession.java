@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLHandshakeException;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -58,10 +59,6 @@ public class ServerDatabaseSession {
 	;
 
 	private JSONObject send_json(JSONObject message, Integer ReadTimeout, Integer ConnectTimeout) throws SBSBaseException {
-		//FIXME we need to check the https certificate!!!
-		//FIXME make Timeouts variable
-		//FIXME Exception Wrapping needs to be done
-
 		//transform JSONObject to a byte string
 		byte[] message_bytes = null;
 		try {
@@ -89,6 +86,8 @@ public class ServerDatabaseSession {
 			response_string = new Scanner(is, "UTF-8").useDelimiter("\\A").next().trim();
 			is.close();
 			conn.disconnect();
+		} catch (SSLHandshakeException e) {
+			throw new NoValidSSLCert();
 		} catch (IOException e) {
 			System.out.println(e);
 			throw new NoServerConnectionException();
