@@ -23,10 +23,10 @@ public class Main {
 			System.out.println(e);
 		};
 		try {
-			LinkedList<Project> project_list = SDS.get_projects();
-			LinkedList<Experiment> experiment_list = SDS.get_experiments();
-			System.out.println(project_list);
-			System.out.println(experiment_list);
+			LinkedList<RemoteProject> remoteProject_list = SDS.get_projects();
+			LinkedList<RemoteExperiment> remoteExperiment_list = SDS.get_experiments();
+			System.out.println(remoteProject_list);
+			System.out.println(remoteExperiment_list);
 		} catch (SBSBaseException e) {
 			System.out.println(e);
 		};

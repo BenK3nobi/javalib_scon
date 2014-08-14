@@ -182,7 +182,7 @@ public class ServerDatabaseSession {
 
 	public Boolean auth_session(byte[] response){return Boolean.TRUE;};
 
-	public LinkedList<Project> get_projects() throws SBSBaseException {
+	public LinkedList<RemoteProject> get_projects() throws SBSBaseException {
 		this.check_for_session();
 		JSONObject request = new JSONObject();
 		try {
@@ -202,7 +202,7 @@ public class ServerDatabaseSession {
 			throw new SBSBaseException();
 		}
 
-		LinkedList<Project> project_list = new LinkedList<Project>();
+		LinkedList<RemoteProject> remoteProject_list = new LinkedList<RemoteProject>();
 		for (int i = 0; i < project_json_array.length(); i++) {
 			JSONArray project_json = null;
 			Integer id = null;
@@ -213,20 +213,20 @@ public class ServerDatabaseSession {
 				id = project_json.getInt(0);
 				name = project_json.getString(1);
 				description = project_json.getString(2);
-				project_list.add(new Project(id, name, description));
+				remoteProject_list.add(new RemoteProject(id, name, description));
 			} catch (JSONException e) {
 				//some project did not decode correctly
 				throw new SBSBaseException();
 			}
 			;
 		}
-		return project_list;
+		return remoteProject_list;
 	}
 
 	;
 
 
-	public LinkedList<Experiment> get_experiments() throws SBSBaseException {
+	public LinkedList<RemoteExperiment> get_experiments() throws SBSBaseException {
 		this.check_for_session();
 		JSONObject request = new JSONObject();
 		System.out.println("Success0");
@@ -247,7 +247,7 @@ public class ServerDatabaseSession {
 		} catch (JSONException e) {
 			throw new SBSBaseException();
 		}
-		LinkedList<Experiment> experiment_list = new LinkedList<Experiment>();
+		LinkedList<RemoteExperiment> remoteExperiment_list = new LinkedList<RemoteExperiment>();
 		for (int i = 0; i < experiment_json_array.length(); i++) {
 			JSONArray experiment_json = null;
 			Integer project_id = null;
@@ -260,16 +260,21 @@ public class ServerDatabaseSession {
 				id = experiment_json.getInt(1);
 				name = experiment_json.getString(2);
 				description = experiment_json.getString(3);
-				experiment_list.add(new Experiment(project_id, id, name, description));
+				remoteExperiment_list.add(new RemoteExperiment(project_id, id, name, description));
 			} catch (JSONException e) {
 				//some project did not decode correctly
 				throw new SBSBaseException();
 			}
 			;
 		}
-		return experiment_list;
+		return remoteExperiment_list;
 	};
 
 	public Integer[] get_last_entry_ids(Integer session_id, Integer experiment_id, Integer entry_count){return null;};
-	public Entry get_entry(Integer entry_id){return null;};
+
+	public RemoteEntry get_entry(Integer entry_id) {
+		return null;
+	}
+
+	;
 }

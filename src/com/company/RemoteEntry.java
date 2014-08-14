@@ -1,6 +1,6 @@
 package com.company;
 
-public class Entry implements Comparable<Entry>{
+public class RemoteEntry implements Comparable<RemoteEntry> {
 	private Integer id;
 	private String title;
 	private String attachment; //no access yet
@@ -10,7 +10,7 @@ public class Entry implements Comparable<Entry>{
 	private String user;
 	private Integer experiment_id;
 
-	public Entry(Integer id, String title, String attachment, String attachment_type, String sync_time, String entry_time, String user, Integer experiment_id){
+	public RemoteEntry(Integer id, String title, String attachment, String attachment_type, String sync_time, String entry_time, String user, Integer experiment_id) {
 		this.id = id;
 		this.title = title;
 		this.attachment = attachment;
@@ -22,8 +22,8 @@ public class Entry implements Comparable<Entry>{
 	};
 
 	@Override
-	public int compareTo(Entry other_entry) {
-		return this.entry_time.compareTo(other_entry.get_entry_time());
+	public int compareTo(RemoteEntry other_Remote_entry) {
+		return this.entry_time.compareTo(other_Remote_entry.get_entry_time());
 	};
 
 	public Integer get_id(){

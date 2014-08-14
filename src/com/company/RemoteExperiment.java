@@ -1,13 +1,13 @@
 package com.company;
 
-public class Experiment implements Comparable<Experiment> {
+public class RemoteExperiment implements Comparable<RemoteExperiment> {
 	private Integer project_id;
 	private Integer id;
 	private String name;
 	private String description;
 	//private SortedSet<Entry> entrys = new TreeSet(); //we need to add an comparator here
 
-	public Experiment(Integer project_id, Integer id, String name, String description) {
+	public RemoteExperiment(Integer project_id, Integer id, String name, String description) {
 		this.project_id = project_id;
 		this.id = id;
 		this.name = name;
@@ -15,8 +15,8 @@ public class Experiment implements Comparable<Experiment> {
 	};
 
 	@Override
-	public int compareTo(Experiment other_experiment) {
-		return this.id.compareTo(other_experiment.get_id());
+	public int compareTo(RemoteExperiment other_Remote_experiment) {
+		return this.id.compareTo(other_Remote_experiment.get_id());
 	};
 
 	public Integer get_id() {
